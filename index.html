@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 4: Custom Map Tiles</title>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css' rel='stylesheet' />
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+        
+        .map-title {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1;
+            max-width: 300px;
+        }
+        
+        .map-title h1 {
+            margin: 0 0 5px 0;
+            font-size: 20px;
+            color: #333;
+        }
+        
+        .map-title p {
+            margin: 0;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        .layer-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1;
+            min-width: 200px;
+        }
+        
+        .layer-switcher h3 {
+            margin: 0 0 12px 0;
+            font-size: 16px;
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 8px;
+        }
+        
+        .layer-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .layer-option:hover {
+            background-color: rgba(76, 175, 80, 0.1);
+        }
+        
+        .layer-option input[type="radio"] {
+            margin-right: 10px;
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .layer-option label {
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+            flex-grow: 1;
+        }
+        
+        .map-description {
+            position: absolute;
+            bottom: 40px;
+            left: 20px;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 12px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1;
+            max-width: 350px;
+            font-size: 13px;
+            color: #555;
+            line-height: 1.5;
+        }
+        
+
+        .mapboxgl-ctrl-attrib {
+            background-color: rgba(255, 255, 255, 0.8) !important;
+            font-size: 11px;
+        }
+
+        .mapboxgl-ctrl-scale {
+            background-color: rgba(255, 255, 255, 0.95) !important;
+            border: 2px solid #333 !important;
+            border-top: none !important;
+            color: #333 !important;
+            padding: 2px 5px !important;
+            font-size: 11px !important;
+            font-weight: 600 !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        .mapboxgl-ctrl-bottom-left {
+            z-index: 1000 !important;
+            bottom: 10px !important;
+            left: 10px !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    
+    <!-- Map Title -->
+    <div class="map-title">
+        <h1>Seattle Parks Map</h1>
+        <p>Geographic Study Area: Seattle, Washington<br>
+        Interactive map showing four custom tile layers</p>
+    </div>
+    
+    <!-- Layer Switcher -->
+    <div class="layer-switcher">
+        <h3>Map Layers</h3>
+        <div class="layer-option">
+            <input type="radio" id="layer1" name="layer" value="basemap" checked>
+            <label for="layer1">Basemap (Monochrome)</label>
+        </div>
+        <div class="layer-option">
+            <input type="radio" id="layer2" name="layer" value="thematic">
+            <label for="layer2">Thematic Layer</label>
+        </div>
+        <div class="layer-option">
+            <input type="radio" id="layer3" name="layer" value="combined">
+            <label for="layer3">Combined Layer</label>
+        </div>
+        <div class="layer-option">
+            <input type="radio" id="layer4" name="layer" value="themed">
+            <label for="layer4">Nature theme</label>
+        </div>
+    </div>
+    
+    <!-- Map Description -->
+    <div class="map-description">
+        <strong>About this map:</strong> This interactive web map displays four different custom tile layers generated in QGIS. Use the layer switcher to toggle between different map views.
+    </div>
+
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoidGlubmFtIiwiYSI6ImNtaDI4djdsYTJ3dW8ybXE0M3g0OGpwdXkifQ.52zB7C-sGgsdU1t-EWdHnw';
+        
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/light-v11',
+            center: [-122.3321, 47.6062], 
+            zoom: 12, 
+            minZoom: 10, 
+            maxZoom: 15 
+        });
+        
+
+        map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+        
+        map.addControl(new mapboxgl.ScaleControl({
+            maxWidth: 200,
+            unit: 'imperial'
+        }), 'bottom-left');
+        map.addControl(new mapboxgl.FullscreenControl(), 'bottom-right');
+        
+
+        map.on('load', () => {
+ 
+            map.addSource('basemap-tiles', {
+                type: 'raster',
+                tiles: [
+                    'assets/tileset_1/{z}/{x}/{y}.png'
+                ],
+                tileSize: 256,
+                attribution: 'Basemap tiles by Tinna M'
+            });
+            
+            map.addLayer({
+                id: 'basemap',
+                type: 'raster',
+                source: 'basemap-tiles',
+                layout: {
+                    visibility: 'visible' 
+                }
+            });
+            
+            map.addSource('thematic-tiles', {
+                type: 'raster',
+                tiles: [
+                    'assets/tileset_2/{z}/{x}/{y}.png'
+                ],
+                tileSize: 256,
+                attribution: 'Thematic layer by [Your Name]'
+            });
+            
+            map.addLayer({
+                id: 'thematic',
+                type: 'raster',
+                source: 'thematic-tiles',
+                layout: {
+                    visibility: 'none'
+                }
+            });
+            
+            map.addSource('combined-tiles', {
+                type: 'raster',
+                tiles: [
+                    'assets/tileset_3/{z}/{x}/{y}.png'
+                ],
+                tileSize: 256,
+                attribution: 'Combined layer by [Your Name]'
+            });
+            
+            map.addLayer({
+                id: 'combined',
+                type: 'raster',
+                source: 'combined-tiles',
+                layout: {
+                    visibility: 'none' 
+                }
+            });
+            
+            map.addSource('themed-tiles', {
+                type: 'raster',
+                tiles: [
+                    'assets/tileset_4/{z}/{x}/{y}.png'
+                ],
+                tileSize: 256,
+                attribution: 'Themed map by [Your Name]'
+            });
+            
+            map.addLayer({
+                id: 'themed',
+                type: 'raster',
+                source: 'themed-tiles',
+                layout: {
+                    visibility: 'none' 
+                }
+            });
+        });
+        
+
+        const layerRadios = document.querySelectorAll('input[name="layer"]');
+        
+        layerRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const selectedLayer = e.target.value;
+                
+                map.setLayoutProperty('basemap', 'visibility', 'none');
+                map.setLayoutProperty('thematic', 'visibility', 'none');
+                map.setLayoutProperty('combined', 'visibility', 'none');
+                map.setLayoutProperty('themed', 'visibility', 'none');
+                map.setLayoutProperty(selectedLayer, 'visibility', 'visible');
+            });
+        });
+    </script>
+</body>
+</html>
