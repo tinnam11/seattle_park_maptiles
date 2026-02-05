@@ -116,22 +116,23 @@
         }
 
         .mapboxgl-ctrl-scale {
-            background-color: rgba(255, 255, 255, 0.95) !important;
-            border: 2px solid #333 !important;
-            border-top: none !important;
-            color: #333 !important;
-            padding: 2px 5px !important;
-            font-size: 11px !important;
-            font-weight: 600 !important;
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 2px solid #333;
+            border-top: none;
+            color: #333;
+            padding: 2px 5px;
+            font-size: 11px;
+            font-weight: 600;
+            display: block;
+            visibility: visible;
+            opacity: 1;
+            
         }
 
         .mapboxgl-ctrl-bottom-left {
-            z-index: 1000 !important;
-            bottom: 10px !important;
-            left: 10px !important;
+            z-index: 1000;
+            bottom: 10px;
+            left: 10px;
         }
     </style>
 </head>
@@ -183,14 +184,13 @@
             maxZoom: 15 
         });
         
-
-        map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
-        
         map.addControl(new mapboxgl.ScaleControl({
             maxWidth: 200,
             unit: 'imperial'
-        }), 'bottom-left');
+        }), 'bottom-right');
+        map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
         map.addControl(new mapboxgl.FullscreenControl(), 'bottom-right');
+        
         
 
         map.on('load', () => {
